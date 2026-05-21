@@ -1,2 +1,3 @@
-# build-los
-Script para automatizar o processo de compilação da LineageOS
+```
+curl -fsSL https://raw.githubusercontent.com/WhoFoss/build-los/refs/heads/main/compile.sh | bash
+```
