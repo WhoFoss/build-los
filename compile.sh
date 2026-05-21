@@ -1,6 +1,12 @@
 #!/bin/bash
 
 # ================================
+# Log file
+# ================================
+LOG_FILE="build_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+# ================================
 # Colors
 # ================================
 RED='\033[0;31m'
@@ -80,6 +86,7 @@ fi
 # Main Script
 # ================================
 echo -e "${CYAN}Starting LOS 23.2 build script...${RESET}"
+echo -e "${CYAN}Log file: $LOG_FILE${RESET}"
 
 cleanup_repos
 
@@ -89,6 +96,27 @@ print_header "Repo init success"
 
 # Clone local manifests
 clone_repo "https://github.com/saroj-nokia/local_manifests_sapphire" "sapphire16" ".repo/local_manifests"
+
+# Create MicroG manifest
+echo -e "${CYAN}Creating MicroG manifest...${RESET}"
+cat > .repo/local_manifests/microg.xml << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+    <remote name="lineageos4microg"
+            fetch="https://github.com/lineageos4microg/" />
+
+    <project path="vendor/partner_gms"
+             name="android_vendor_partner_gms"
+             remote="lineageos4microg"
+             revision="master" />
+</manifest>
+EOF
+print_header "MicroG manifest created"
+
+# Sync MicroG vendor
+echo -e "${CYAN}Syncing MicroG vendor...${RESET}"
+repo sync vendor/partner_gms || error_exit "Failed to sync MicroG vendor"
+print_header "MicroG vendor synced"
 
 # Sync repo
 repo sync -c --force-sync --optimized-fetch --no-tags --no-clone-bundle --prune -j14 || error_exit "Repo sync failed"
@@ -152,29 +180,15 @@ fi
 # Setup build environment
 source build/envsetup.sh
 export BUILD_USERNAME=WhoFoss
-export BUILD_HOSTNAME=sv
+export BUILD_HOSTNAME=los23
 export SKIP_ABI_CHECKS=true
 mkdir -p out/target/product/sapphire/obj/KERNEL_OBJ/usr
 
 # ================================
 # Build ROM
 # ================================
-export WITH_GMS=false
-export WITH_MICROG=true 
+export WITH_MICROG=true    # ativa o MicroG
 brunch sapphire user || error_exit "Brunch failed"
 
 print_header "Build process completed successfully!"
-
-# Upload ROM to PixelDrain
-ROM_DIR="out/target/product/sapphire/"
-ROM_NAME=$(ls "$ROM_DIR" | grep "lineage-23.2-.*-UNOFFICIAL-sapphire.zip$" | tail -n 1)
-
-if [ -n "$ROM_NAME" ]; then
-    ROM_PATH="$ROM_DIR$ROM_NAME"
-    echo -e "${CYAN}Uploading ROM to PixelDrain...${RESET}"
-    curl -T "$ROM_PATH" -u :d948712b-edd9-4073-bdbc-b59c3f8a4392 https://pixeldrain.com/api/file/ || echo -e "${RED}Upload failed!${RESET}"
-else
-    echo -e "${YELLOW}ROM file not found. Upload skipped.${RESET}"
-fi
-
-print_header "Script completed!"
+echo -e "${GREEN}Log saved to: $LOG_FILE${RESET}"
