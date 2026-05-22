@@ -151,6 +151,26 @@ else
     echo -e "${YELLOW}device.mk not found, skipping Via addition${RESET}"
 fi
 
+# Clone AuroraStore prebuilt to vendor/aurora
+echo -e "${CYAN}Cloning AuroraStore prebuilt...${RESET}"
+rm -rf vendor/aurora
+git clone --depth 1 -b 12L https://github.com/MSe1969/AuroraStore-prebuilt.git vendor/aurora
+rm -rf vendor/aurora/.git
+print_header "AuroraStore prebuilt cloned to vendor/aurora"
+
+# Add AuroraStore to device.mk
+DEVICE_MK="device/xiaomi/sapphire/device.mk"
+if [ -f "$DEVICE_MK" ]; then
+    if ! grep -q "AuroraStore" "$DEVICE_MK"; then
+        echo "PRODUCT_PACKAGES += AuroraStore AuroraServices" >> "$DEVICE_MK"
+        print_header "AuroraStore added to device.mk"
+    else
+        echo -e "${YELLOW}AuroraStore already exists in device.mk${RESET}"
+    fi
+else
+    echo -e "${YELLOW}device.mk not found, skipping AuroraStore addition${RESET}"
+fi
+
 # Comment Gapps line in lineage_sapphire.mk
 LINEAGE_SAPPHIRE_MK="device/xiaomi/sapphire/lineage_sapphire.mk"
 if [ -f "$LINEAGE_SAPPHIRE_MK" ]; then
