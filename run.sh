@@ -83,10 +83,12 @@ echo -e "${CYAN}Starting LOS 23.2 build script...${RESET}"
 
 cleanup_repos
 
+# ================================
 # Initialize LOS repo
 repo init -u https://github.com/LineageOS/android.git -b lineage-23.2 --git-lfs || error_exit "Repo init failed"
 print_header "Repo init success"
 
+# ================================
 # Clone local manifests
 clone_repo "https://github.com/saroj-nokia/local_manifests_sapphire" "sapphire16" ".repo/local_manifests"
 
@@ -105,6 +107,7 @@ cat > .repo/local_manifests/microg.xml << EOF
 </manifest>
 EOF
 print_header "MicroG manifest created"
+
 
 # Sync MicroG vendor
 echo -e "${CYAN}Syncing MicroG vendor...${RESET}"
@@ -171,6 +174,7 @@ else
     echo -e "${YELLOW}device.mk not found, skipping AuroraStore addition${RESET}"
 fi
 
+# ================================
 # Comment Gapps line in lineage_sapphire.mk
 LINEAGE_SAPPHIRE_MK="device/xiaomi/sapphire/lineage_sapphire.mk"
 if [ -f "$LINEAGE_SAPPHIRE_MK" ]; then
@@ -180,6 +184,7 @@ else
     echo -e "${YELLOW}lineage_sapphire.mk not found, skipping Gapps comment${RESET}"
 fi
 
+# ================================
 # Patch Signature Spoofing
 COMPUTER_ENGINE="frameworks/base/services/core/java/com/android/server/pm/ComputerEngine.java"
 if grep -q 'if (!isDebuggable())' "$COMPUTER_ENGINE"; then
@@ -189,6 +194,9 @@ else
     echo -e "${YELLOW}Signature Spoofing patch: block not found or already patched${RESET}"
 fi
 
+# ================================
+# Add MicroG suffix to version.mk
+# ================================
 sed -i '/^LINEAGE_VERSION_SUFFIX := .*/a \
 \
 # Add MICROG to suffix if WITH_GMS is true\
