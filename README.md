@@ -1,6 +1,6 @@
 ### Script automatizado
 ```
-curl -fsSL https://raw.githubusercontent.com/WhoFoss/build-los/refs/heads/main/compile.sh | bash
+curl -fsSL [https://raw.githubusercontent.com/WhoFoss/build-los/refs/heads/main/compile.sh](https://raw.githubusercontent.com/WhoFoss/Build-LineageOS-MicroG/refs/heads/main/run.sh) | bash
 ```
 
 ### Gofile upload
